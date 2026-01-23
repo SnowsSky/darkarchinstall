@@ -52,3 +52,54 @@ func Sure_form(confirm *bool, text *string) *huh.Form {
 		),
 	)
 }
+
+func Accounts_form(acc_opt *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Darkinstall - Accounts").
+				Options(
+					huh.NewOption("Add an account", "acc_add"),
+					huh.NewOption("Remove an account", "acc_remove"),
+				).
+				Value(acc_opt),
+		),
+	)
+}
+
+func Account_add_form(username *string, password *string, sudo *bool) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter username:").
+				Placeholder("darkarch").
+				Value(username),
+			huh.NewInput().
+				Title("Enter password:").
+				Value(password),
+			huh.NewConfirm().
+				Title("Grant sudo privileges?").
+				Affirmative("of course !").
+				Negative("No !").
+				Value(sudo),
+		),
+	)
+}
+
+func Account_remove_form(accounts []Accounts, selected *string) *huh.Form {
+	options := make([]huh.Option[string], 0)
+
+	for _, acc := range accounts {
+		options = append(options,
+			huh.NewOption(acc.Username, acc.Username),
+		)
+	}
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select user to delete").
+				Options(options...).
+				Value(selected),
+		),
+	)
+}
