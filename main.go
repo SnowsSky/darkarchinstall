@@ -12,7 +12,7 @@ var (
 	rootpasswd string
 )
 
-// Forms
+var accounts []src.Accounts
 
 func options_check() {
 	//checks
@@ -34,6 +34,45 @@ func options_check() {
 		}
 		fmt.Println("Root password sucessfully changed.")
 
+	case "acc":
+		var acc_opt string
+		form := src.Accounts_form(&acc_opt)
+		err := form.Run()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+
+		switch acc_opt {
+		case "acc_add":
+			var account src.Accounts
+			form := src.Account_add_form(&account.Username, &account.Password, &account.Sudo)
+			err := form.Run()
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			accounts = append(accounts, account)
+
+		case "acc_remove":
+			var selectedUser string
+			fmt.Printf("Account added: %+v\n", accounts)
+			form := src.Account_remove_form(accounts, &selectedUser)
+			err := form.Run()
+			if err != nil {
+				fmt.Println("Error:", err)
+				return
+			}
+			var updated []src.Accounts
+			for _, acc := range accounts {
+				if acc.Username != selectedUser {
+					updated = append(updated, acc)
+				}
+			}
+
+			accounts = updated
+		}
+
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		form := src.Sure_form(&confirm, &text)
@@ -48,8 +87,7 @@ func options_check() {
 		}
 		fmt.Println("Installation aborted by user.")
 		return
-	case "acc":
-		fmt.Println("nob")
+
 	}
 
 	main()
