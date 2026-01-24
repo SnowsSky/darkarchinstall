@@ -1,0 +1,128 @@
+package src
+
+import (
+	"darkarchinstall/src/types"
+
+	"github.com/charmbracelet/huh"
+)
+
+func Main_form(opt *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Welcome to darkarchinstall !").
+				Options(
+					huh.NewOption("Select Hostname", "hostname"),
+					huh.NewOption("Set root password", "rootpasswd"),
+					huh.NewOption("Accounts", "acc"),
+					huh.NewOption("Select locales", "locales"),
+					huh.NewOption("Keymap", "keymap"),
+					huh.NewOption("Timezone", "timezone"),
+					huh.NewOption("Disk partitioning", "diskpart"),
+					huh.NewOption("Install darkarch", "install"),
+					huh.NewOption("Cancel & exit", "cancel"),
+				).
+				Value(opt),
+		),
+	)
+}
+
+func Hostname_form(hostname *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter Hostname:").
+				Placeholder(*hostname).
+				Value(hostname),
+		),
+	)
+}
+
+func Root_passwd(rootpasswd *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter root password:").
+				Value(rootpasswd),
+		),
+	)
+}
+
+func Sure_form(confirm *bool, text *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title(*text).
+				Affirmative("Yes!").
+				Negative("No.").
+				Value(confirm),
+		),
+	)
+}
+
+func Accounts_form(acc_opt *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Darkinstall - Accounts").
+				Options(
+					huh.NewOption("Add an account", "acc_add"),
+					huh.NewOption("Remove an account", "acc_remove"),
+					huh.NewOption("Go back ?", "back"),
+				).
+				Value(acc_opt),
+		),
+	)
+}
+
+func Account_add_form(username *string, password *string, sudo *bool) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter username:").
+				Placeholder("darkarch").
+				Value(username),
+			huh.NewInput().
+				Title("Enter password:").
+				Value(password),
+			huh.NewConfirm().
+				Title("Grant sudo privileges?").
+				Affirmative("of course !").
+				Negative("No !").
+				Value(sudo),
+		),
+	)
+}
+
+func Account_remove_form(accounts []types.Accounts, selected *string) *huh.Form {
+	options := make([]huh.Option[string], 0)
+
+	for _, acc := range accounts {
+		options = append(options,
+			huh.NewOption(acc.Username, acc.Username),
+		)
+	}
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select user to delete").
+				Options(options...).
+				Value(selected),
+		),
+	)
+}
+
+func Locales_form(locales *[]string, selected *string) *huh.Form {
+	options := make([]huh.Option[string], 0)
+	for _, loc := range *locales {
+		options = append(options, huh.NewOption(loc, loc))
+	}
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select locales").
+				Options(options...).
+				Value(selected),
+		),
+	)
+}
