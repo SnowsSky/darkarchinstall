@@ -124,6 +124,7 @@ func Options_check(opt string) {
 			return
 		}
 		fmt.Println("Installation aborted by user.")
+		os.Exit(1)
 		return
 
 	}
