@@ -131,7 +131,7 @@ func Keymap_form(keymap *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
-				Title("Enter keymap:").
+				Title("Enter keymap: https://man.archlinux.org/man/vconsole.conf.5").
 				Placeholder("de-latin1").
 				Value(keymap),
 		),
