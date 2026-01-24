@@ -6,6 +6,7 @@ import (
 	"darkarchinstall/src/types"
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -122,6 +123,15 @@ func Options_check(opt string) {
 		}
 	case "timezone":
 		form := src.Timezone_form(&timezone)
+		err := form.Run()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+	case "diskpart":
+		out, _ := exec.Command("lsblk", "-dn", "-o", "NAME").Output()
+		disks := strings.Fields(string(out))
+		form := src.Diskpart_form(disks, &selected)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)

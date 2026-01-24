@@ -148,3 +148,20 @@ func Timezone_form(timezone *string) *huh.Form {
 		),
 	)
 }
+
+func Diskpart_form(disks []string, selected *string) *huh.Form {
+	options := make([]huh.Option[string], 0)
+
+	for _, disk := range disks {
+		options = append(options, huh.NewOption(disk, disk))
+	}
+	options = append(options, huh.NewOption("Go back ?", "back"))
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select a disk to edit.").
+				Options(options...).
+				Value(selected),
+		),
+	)
+}
