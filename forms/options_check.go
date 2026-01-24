@@ -1,12 +1,11 @@
-package checks
+package forms
 
 import (
 	"bufio"
-	"darkarchinstall/src"
-	"darkarchinstall/src/types"
+	"darkarchinstall/types"
+	"darkarchinstall/fs"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 )
 
@@ -27,7 +26,7 @@ func Options_check(opt string) {
 	//checks
 	switch opt {
 	case "hostname":
-		form := src.Hostname_form(&hostname)
+		form := Hostname_form(&hostname)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -35,7 +34,7 @@ func Options_check(opt string) {
 		}
 		fmt.Println("Hostname successfully changed.")
 	case "rootpasswd":
-		form := src.Root_passwd(&rootpasswd)
+		form := Root_passwd(&rootpasswd)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -45,7 +44,7 @@ func Options_check(opt string) {
 
 	case "acc":
 		var acc_opt string
-		form := src.Accounts_form(&acc_opt)
+		form := Accounts_form(&acc_opt)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -55,7 +54,7 @@ func Options_check(opt string) {
 		switch acc_opt {
 		case "acc_add":
 			var account types.Accounts
-			form := src.Account_add_form(&account.Username, &account.Password, &account.Sudo)
+			form := Account_add_form(&account.Username, &account.Password, &account.Sudo)
 			err := form.Run()
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -65,7 +64,7 @@ func Options_check(opt string) {
 
 		case "acc_remove":
 			fmt.Printf("Account added: %+v\n", accounts)
-			form := src.Account_remove_form(accounts, &selectedUser)
+			form := Account_remove_form(accounts, &selectedUser)
 			err := form.Run()
 			if err != nil {
 				fmt.Println("Error:", err)
@@ -106,38 +105,41 @@ func Options_check(opt string) {
 			panic(err)
 		}
 
-		form := src.Locales_form(&locales, &selected)
+		form := Locales_form(&locales, &selected)
 		err = form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 	case "keymap":
-		form := src.Keymap_form(&keymap)
+		form := Keymap_form(&keymap)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 	case "timezone":
-		form := src.Timezone_form(&timezone)
+		form := Timezone_form(&timezone)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 	case "diskpart":
-		out, _ := exec.Command("lsblk", "-dn", "-o", "NAME").Output()
-		disks := strings.Fields(string(out))
-		form := src.Diskpart_form(disks, &selected)
-		err := form.Run()
+		disks, err := fs.GetDisks()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
+		form := Diskpart_form(disks, &selected)
+		err = form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
 	case "cancel":
 		var text string = "You want to exit installation ?"
-		form := src.Sure_form(&confirm, &text)
+		form := Sure_form(&confirm, &text)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)

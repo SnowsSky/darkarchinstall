@@ -1,8 +1,7 @@
 package main
 
 import (
-	"darkarchinstall/src"
-	"darkarchinstall/src/checks"
+	"darkarchinstall/forms"
 	"fmt"
 )
 
@@ -11,12 +10,12 @@ var opt string
 func main() {
 	opt = ""
 	for {
-		form := src.Main_form(&opt)
+		form := forms.Main_form(&opt)
 		err := form.Run()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
-		checks.Options_check(opt)
+		forms.Options_check(opt)
 	}
 }

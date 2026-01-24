@@ -1,7 +1,7 @@
-package src
+package forms
 
 import (
-	"darkarchinstall/src/types"
+	"darkarchinstall/types"
 
 	"github.com/charmbracelet/huh"
 )
@@ -19,7 +19,7 @@ func Main_form(opt *string) *huh.Form {
 					huh.NewOption("Keymap", "keymap"),
 					huh.NewOption("Timezone", "timezone"),
 					huh.NewOption("Disk partitioning", "diskpart"),
-					huh.NewOption("Install darkarch", "install"),
+					huh.NewOption("Install Dark Arch", "install"),
 					huh.NewOption("Cancel & exit", "cancel"),
 				).
 				Value(opt),
@@ -87,7 +87,7 @@ func Account_add_form(username *string, password *string, sudo *bool) *huh.Form 
 				Value(password),
 			huh.NewConfirm().
 				Title("Grant sudo privileges?").
-				Affirmative("of course !").
+				Affirmative("Of course !").
 				Negative("No !").
 				Value(sudo),
 		),
@@ -143,7 +143,7 @@ func Timezone_form(timezone *string) *huh.Form {
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Enter timezone:").
-				Placeholder("Europe/Paris").
+				Placeholder("UTC").
 				Value(timezone),
 		),
 	)
