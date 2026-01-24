@@ -126,3 +126,14 @@ func Locales_form(locales *[]string, selected *string) *huh.Form {
 		),
 	)
 }
+
+func Keymap_form(keymap *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter keymap:").
+				Placeholder("de-latin1").
+				Value(keymap),
+		),
+	)
+}

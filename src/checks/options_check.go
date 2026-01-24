@@ -17,6 +17,8 @@ var (
 	rootpasswd   string
 	selectedUser string
 	selected     string
+	locales      []string
+	keymap       string
 )
 
 func Options_check(opt string) {
@@ -80,7 +82,6 @@ func Options_check(opt string) {
 		}
 
 	case "locales":
-		var locales []string
 		file, err := os.Open("/etc/locale.gen")
 		if err != nil {
 			fmt.Println("Error:", err)
@@ -111,7 +112,13 @@ func Options_check(opt string) {
 			fmt.Println("Error:", err)
 			return
 		}
-
+	case "keymap":
+		form := src.Keymap_form(&keymap)
+		err := form.Run()
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		form := src.Sure_form(&confirm, &text)
