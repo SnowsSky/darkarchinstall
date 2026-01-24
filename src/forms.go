@@ -137,3 +137,14 @@ func Keymap_form(keymap *string) *huh.Form {
 		),
 	)
 }
+
+func Timezone_form(timezone *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Enter timezone:").
+				Placeholder("Europe/Paris").
+				Value(timezone),
+		),
+	)
+}
