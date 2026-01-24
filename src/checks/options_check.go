@@ -79,8 +79,6 @@ func Options_check(opt string) {
 			}
 
 			accounts = updated
-		case "back":
-			return
 		}
 
 	case "locales":
