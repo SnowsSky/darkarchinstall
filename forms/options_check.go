@@ -2,8 +2,8 @@ package forms
 
 import (
 	"bufio"
-	"darkarchinstall/types"
 	"darkarchinstall/fs"
+	"darkarchinstall/types"
 	"fmt"
 	"os"
 	"strings"
@@ -54,7 +54,7 @@ func Options_check(opt string) {
 		switch acc_opt {
 		case "acc_add":
 			var account types.Accounts
-			form := Account_add_form(&account.Username, &account.Password, &account.Sudo)
+			form := Account_add_form(&account.Username, &account.Password, &account.SudoPerms)
 			err := form.Run()
 			if err != nil {
 				fmt.Println("Error:", err)
