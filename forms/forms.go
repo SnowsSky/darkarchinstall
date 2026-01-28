@@ -43,6 +43,7 @@ func Root_passwd(rootpasswd *string) *huh.Form {
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Enter root password:").
+				EchoMode(huh.EchoModePassword).
 				Value(rootpasswd),
 		),
 	)
