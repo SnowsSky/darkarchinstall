@@ -12,12 +12,12 @@ func Main_form(opt *string) *huh.Form {
 			huh.NewSelect[string]().
 				Title("Welcome to darkarchinstall !").
 				Options(
-					huh.NewOption("Select Hostname", "hostname"),
+					huh.NewOption("Select Hostname <"+hostname+">", "hostname"),
 					huh.NewOption("Set root password", "rootpasswd"),
 					huh.NewOption("Accounts", "acc"),
 					huh.NewOption("Select locales", "locales"),
-					huh.NewOption("Keymap", "keymap"),
-					huh.NewOption("Timezone", "timezone"),
+					huh.NewOption("Keymap <"+keymap+">", "keymap"),
+					huh.NewOption("Timezone <"+timezone+">", "timezone"),
 					huh.NewOption("Disk partitioning", "diskpart"),
 					huh.NewOption("Install Dark Arch", "install"),
 					huh.NewOption("Cancel & exit", "cancel"),

@@ -47,15 +47,12 @@ func Options_check(opt string) {
 					updated = append(updated, acc)
 				}
 			}
-
 			accounts = updated
 		}
-
 	case "locales":
 		err := getLocales()
 		if err != nil {
 			fmt.Println("Error:", err)
-			return
 		}
 		Locales_form(&locales, &selected).Run()
 	case "keymap":
