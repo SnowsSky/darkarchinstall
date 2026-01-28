@@ -85,6 +85,7 @@ func Account_add_form(username *string, password *string, sudo *bool) *huh.Form 
 				Value(username),
 			huh.NewInput().
 				Title("Enter password:").
+				EchoMode(huh.EchoModePassword).
 				Value(password),
 			huh.NewConfirm().
 				Title("Grant sudo privileges?").

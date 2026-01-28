@@ -41,13 +41,7 @@ func Options_check(opt string) {
 
 		case "acc_remove":
 			Account_remove_form(accounts, &selectedUser).Run()
-			var updated []types.Accounts
-			for _, acc := range accounts {
-				if acc.Username != selectedUser {
-					updated = append(updated, acc)
-				}
-			}
-			accounts = updated
+			remove_Account()
 		}
 	case "locales":
 		err := getLocales()
@@ -85,6 +79,15 @@ func Options_check(opt string) {
 
 }
 
+func remove_Account() {
+	var updated []types.Accounts
+	for _, acc := range accounts {
+		if acc.Username != selectedUser {
+			updated = append(updated, acc)
+		}
+	}
+	accounts = updated
+}
 func getLocales() error {
 	file, err := os.Open("/etc/locale.gen")
 	if err != nil {
