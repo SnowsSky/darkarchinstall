@@ -1,6 +1,6 @@
 package types
 
-type Accounts struct {
+type Account struct {
 	Username  string
 	Password  string
 	SudoPerms bool
@@ -15,4 +15,10 @@ type DiskConfig struct {
 	HomePartitionSeparated bool
 	RootSize               uint64 // Root partition size in megabytes
 	HomePartitionSize      uint64 // Home partition size in megabytes
+}
+
+type Config struct {
+	RootPasswd string
+	Accounts   []Account
+	DiskConfig DiskConfig
 }
