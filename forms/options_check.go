@@ -26,50 +26,25 @@ func Options_check(opt string) {
 	//checks
 	switch opt {
 	case "hostname":
-		form := Hostname_form(&hostname)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Hostname_form(&hostname).Run()
 		fmt.Println("Hostname successfully changed.")
 	case "rootpasswd":
-		form := Root_passwd(&rootpasswd)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Root_passwd(&rootpasswd).Run()
 		fmt.Println("Root password sucessfully changed.")
 
 	case "acc":
 		var acc_opt string
-		form := Accounts_form(&acc_opt)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Accounts_form(&acc_opt).Run()
 
 		switch acc_opt {
 		case "acc_add":
 			var account types.Accounts
-			form := Account_add_form(&account.Username, &account.Password, &account.SudoPerms)
-			err := form.Run()
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
+			Account_add_form(&account.Username, &account.Password, &account.SudoPerms).Run()
 			accounts = append(accounts, account)
 
 		case "acc_remove":
 			fmt.Printf("Account added: %+v\n", accounts)
-			form := Account_remove_form(accounts, &selectedUser)
-			err := form.Run()
-			if err != nil {
-				fmt.Println("Error:", err)
-				return
-			}
+			Account_remove_form(accounts, &selectedUser).Run()
 			var updated []types.Accounts
 			for _, acc := range accounts {
 				if acc.Username != selectedUser {
@@ -104,27 +79,11 @@ func Options_check(opt string) {
 		if err := scanner.Err(); err != nil {
 			panic(err)
 		}
-
-		form := Locales_form(&locales, &selected)
-		err = form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Locales_form(&locales, &selected).Run()
 	case "keymap":
-		form := Keymap_form(&keymap)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Keymap_form(&keymap).Run()
 	case "timezone":
-		form := Timezone_form(&timezone)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Timezone_form(&timezone).Run()
 	case "diskpart":
 		disks, err := fs.GetDisks()
 		if err != nil {
@@ -139,12 +98,7 @@ func Options_check(opt string) {
 		}
 	case "cancel":
 		var text string = "You want to exit installation ?"
-		form := Sure_form(&confirm, &text)
-		err := form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Sure_form(&confirm, &text).Run()
 		if !confirm {
 			return
 		}
