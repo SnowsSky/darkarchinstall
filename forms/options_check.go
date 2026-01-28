@@ -91,7 +91,6 @@ func Options_check(opt string) {
 func getLocales() error {
 	file, err := os.Open("/etc/locale.gen")
 	if err != nil {
-		fmt.Println("Error:", err)
 		return err
 	}
 	defer file.Close()
@@ -111,4 +110,5 @@ func getLocales() error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
+	return nil
 }
