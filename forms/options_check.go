@@ -27,11 +27,8 @@ func Options_check(opt string) {
 	switch opt {
 	case "hostname":
 		Hostname_form(&hostname).Run()
-		fmt.Println("Hostname successfully changed.")
 	case "rootpasswd":
 		Root_passwd(&rootpasswd).Run()
-		fmt.Println("Root password sucessfully changed.")
-
 	case "acc":
 		var acc_opt string
 		Accounts_form(&acc_opt).Run()
@@ -43,7 +40,6 @@ func Options_check(opt string) {
 			accounts = append(accounts, account)
 
 		case "acc_remove":
-			fmt.Printf("Account added: %+v\n", accounts)
 			Account_remove_form(accounts, &selectedUser).Run()
 			var updated []types.Accounts
 			for _, acc := range accounts {
@@ -56,28 +52,10 @@ func Options_check(opt string) {
 		}
 
 	case "locales":
-		file, err := os.Open("/etc/locale.gen")
+		err := getLocales()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
-		}
-		defer file.Close()
-		lineCount := 0
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			// Skip the first 15 lines (header information)
-			lineCount++
-			if lineCount <= 15 {
-				continue
-			}
-
-			line := scanner.Text()
-			line = strings.ReplaceAll(line, "#", "")
-			locales = append(locales, line)
-		}
-
-		if err := scanner.Err(); err != nil {
-			panic(err)
 		}
 		Locales_form(&locales, &selected).Run()
 	case "keymap":
@@ -108,4 +86,29 @@ func Options_check(opt string) {
 
 	}
 
+}
+
+func getLocales() error {
+	file, err := os.Open("/etc/locale.gen")
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
+	defer file.Close()
+	lineCount := 0
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		// Skip the first 15 lines (header information)
+		lineCount++
+		if lineCount <= 15 {
+			continue
+		}
+		line := scanner.Text()
+		line = strings.ReplaceAll(line, "#", "")
+		locales = append(locales, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return err
+	}
 }
