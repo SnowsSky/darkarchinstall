@@ -66,6 +66,11 @@ func Options_check(opt string) {
 		err = fs.EditDisk(selected)
 		if err != nil {
 			fmt.Println("Error editing disk:", err)
+			return
+		}
+		for {
+			MainForm(&opt).Run()
+			Options_check(opt)
 		}
 	case "cancel":
 		var text string = "You want to exit installation ?"

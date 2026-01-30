@@ -24,9 +24,21 @@ func GetDisks() ([]string, error) {
 }
 
 func EditDisk(disk string) error {
-	err := exec.Command("cfdisk", disk).Run()
+	cmd := exec.Command("cfdisk", disk)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if err != nil {
 		return err
 	}
+	cmd = exec.Command("clear")
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 	return nil
 }
