@@ -26,21 +26,21 @@ func Options_check(opt string) {
 	//checks
 	switch opt {
 	case "hostname":
-		Hostname_form(&hostname).Run()
+		HostnameForm(&hostname).Run()
 	case "rootpasswd":
-		Root_passwd(&rootpasswd).Run()
+		RootPasswd(&rootpasswd).Run()
 	case "acc":
 		var acc_opt string
-		Accounts_form(&acc_opt).Run()
+		AccountsForm(&acc_opt).Run()
 
 		switch acc_opt {
 		case "acc_add":
 			var account types.Accounts
-			Account_add_form(&account.Username, &account.Password, &account.SudoPerms).Run()
+			AccountAddForm(&account.Username, &account.Password, &account.SudoPerms).Run()
 			accounts = append(accounts, account)
 
 		case "acc_remove":
-			Account_remove_form(accounts, &selectedUser).Run()
+			AccountRemoveForm(accounts, &selectedUser).Run()
 			remove_Account()
 		}
 	case "locales":
@@ -48,21 +48,21 @@ func Options_check(opt string) {
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		Locales_form(&locales, &selected).Run()
+		LocalesForm(&locales, &selected).Run()
 	case "keymap":
-		Keymap_form(&keymap).Run()
+		KeymapForm(&keymap).Run()
 	case "timezone":
-		Timezone_form(&timezone).Run()
+		TimezoneForm(&timezone).Run()
 	case "diskpart":
 		disks, err := fs.GetDisks()
 		if err != nil {
 			fmt.Println("Error:", err)
 			return
 		}
-		Diskpart_form(disks, &selected).Run()
+		DiskpartForm(disks, &selected).Run()
 	case "cancel":
 		var text string = "You want to exit installation ?"
-		Confirm_form(&confirm, &text).Run()
+		ConfirmForm(&confirm, &text).Run()
 		if !confirm {
 			return
 		}

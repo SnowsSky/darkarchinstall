@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-func Main_form(opt *string) *huh.Form {
+func MainForm(opt *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -27,7 +27,7 @@ func Main_form(opt *string) *huh.Form {
 	)
 }
 
-func Hostname_form(hostname *string) *huh.Form {
+func HostnameForm(hostname *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -38,7 +38,7 @@ func Hostname_form(hostname *string) *huh.Form {
 	)
 }
 
-func Root_passwd(rootpasswd *string) *huh.Form {
+func RootPasswd(rootpasswd *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -49,7 +49,7 @@ func Root_passwd(rootpasswd *string) *huh.Form {
 	)
 }
 
-func Confirm_form(confirm *bool, text *string) *huh.Form {
+func ConfirmForm(confirm *bool, text *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().
@@ -61,7 +61,7 @@ func Confirm_form(confirm *bool, text *string) *huh.Form {
 	)
 }
 
-func Accounts_form(acc_opt *string) *huh.Form {
+func AccountsForm(acc_opt *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -76,7 +76,7 @@ func Accounts_form(acc_opt *string) *huh.Form {
 	)
 }
 
-func Account_add_form(username *string, password *string, sudo *bool) *huh.Form {
+func AccountAddForm(username *string, password *string, sudo *bool) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -96,7 +96,7 @@ func Account_add_form(username *string, password *string, sudo *bool) *huh.Form 
 	)
 }
 
-func Account_remove_form(accounts []types.Accounts, selected *string) *huh.Form {
+func AccountRemoveForm(accounts []types.Accounts, selected *string) *huh.Form {
 	options := make([]huh.Option[string], 0)
 
 	for _, acc := range accounts {
@@ -114,7 +114,7 @@ func Account_remove_form(accounts []types.Accounts, selected *string) *huh.Form 
 	)
 }
 
-func Locales_form(locales *[]string, selected *string) *huh.Form {
+func LocalesForm(locales *[]string, selected *string) *huh.Form {
 	options := make([]huh.Option[string], 0)
 	for _, loc := range *locales {
 		options = append(options, huh.NewOption(loc, loc))
@@ -129,7 +129,7 @@ func Locales_form(locales *[]string, selected *string) *huh.Form {
 	)
 }
 
-func Keymap_form(keymap *string) *huh.Form {
+func KeymapForm(keymap *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -140,7 +140,7 @@ func Keymap_form(keymap *string) *huh.Form {
 	)
 }
 
-func Timezone_form(timezone *string) *huh.Form {
+func TimezoneForm(timezone *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -151,7 +151,7 @@ func Timezone_form(timezone *string) *huh.Form {
 	)
 }
 
-func Diskpart_form(disks []string, selected *string) *huh.Form {
+func DiskpartForm(disks []string, selected *string) *huh.Form {
 	options := make([]huh.Option[string], 0)
 
 	for _, disk := range disks {
