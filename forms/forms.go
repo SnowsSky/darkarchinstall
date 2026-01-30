@@ -49,7 +49,7 @@ func Root_passwd(rootpasswd *string) *huh.Form {
 	)
 }
 
-func Sure_form(confirm *bool, text *string) *huh.Form {
+func Confirm_form(confirm *bool, text *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().

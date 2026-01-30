@@ -59,15 +59,10 @@ func Options_check(opt string) {
 			fmt.Println("Error:", err)
 			return
 		}
-		form := Diskpart_form(disks, &selected)
-		err = form.Run()
-		if err != nil {
-			fmt.Println("Error:", err)
-			return
-		}
+		Diskpart_form(disks, &selected).Run()
 	case "cancel":
 		var text string = "You want to exit installation ?"
-		Sure_form(&confirm, &text).Run()
+		Confirm_form(&confirm, &text).Run()
 		if !confirm {
 			return
 		}
@@ -78,7 +73,6 @@ func Options_check(opt string) {
 	}
 
 }
-
 func remove_Account() {
 	var updated []types.Accounts
 	for _, acc := range accounts {
