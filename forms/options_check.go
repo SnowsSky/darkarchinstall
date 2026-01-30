@@ -60,6 +60,13 @@ func Options_check(opt string) {
 			return
 		}
 		DiskpartForm(disks, &selected).Run()
+		if selected == "back" {
+			return
+		}
+		err = fs.EditDisk(selected)
+		if err != nil {
+			fmt.Println("Error editing disk:", err)
+		}
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()

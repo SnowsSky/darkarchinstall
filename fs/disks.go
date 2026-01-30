@@ -2,6 +2,7 @@ package fs
 
 import (
 	"os"
+	"os/exec"
 	"path"
 )
 
@@ -20,4 +21,12 @@ func GetDisks() ([]string, error) {
 	}
 
 	return disks, nil
+}
+
+func EditDisk(disk string) error {
+	err := exec.Command("cfdisk", disk).Run()
+	if err != nil {
+		return err
+	}
+	return nil
 }
