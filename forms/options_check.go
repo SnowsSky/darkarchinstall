@@ -20,6 +20,7 @@ var (
 	locales      []string
 	keymap       string
 	timezone     string
+	bootloader   string = "grub"
 )
 
 func Options_check(opt string) {
@@ -72,6 +73,8 @@ func Options_check(opt string) {
 			MainForm(&opt).Run()
 			Options_check(opt)
 		}
+	case "bootloader":
+		BootLoaderForm(&bootloader).Run()
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()
@@ -85,6 +88,14 @@ func Options_check(opt string) {
 	}
 
 }
+
+func CheckRoot() error {
+	if os.Geteuid() != 0 {
+		return fmt.Errorf("You need to run this program as root")
+	}
+	return nil
+}
+
 func remove_Account() {
 	var updated []types.Accounts
 	for _, acc := range accounts {
@@ -103,9 +114,9 @@ func getLocales() error {
 	lineCount := 0
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		// Skip the first 15 lines (header information)
+		// Skip the first 17 lines (header information)
 		lineCount++
-		if lineCount <= 15 {
+		if lineCount <= 17 {
 			continue
 		}
 		line := scanner.Text()

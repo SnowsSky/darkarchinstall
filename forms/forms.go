@@ -4,9 +4,16 @@ import (
 	"darkarchinstall/types"
 
 	"github.com/charmbracelet/huh"
+	"github.com/charmbracelet/lipgloss"
 )
 
+var theme = huh.ThemeBase()
+
 func MainForm(opt *string) *huh.Form {
+	// Theme setup
+	theme.Focused.TextInput.Cursor = lipgloss.NewStyle().Foreground(lipgloss.Color("#eb0e0e"))
+	theme.Focused.Title = lipgloss.NewStyle().Foreground(lipgloss.Color("#e7130cd8")).Bold(true)
+	theme.Focused.SelectedOption = lipgloss.NewStyle().Bold(true)
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
@@ -19,12 +26,13 @@ func MainForm(opt *string) *huh.Form {
 					huh.NewOption("Keymap <"+keymap+">", "keymap"),
 					huh.NewOption("Timezone <"+timezone+">", "timezone"),
 					huh.NewOption("Disk partitioning", "diskpart"),
+					huh.NewOption("Select bootloader <"+bootloader+">", "bootloader"),
 					huh.NewOption("Install Dark Arch", "install"),
 					huh.NewOption("Cancel & exit", "cancel"),
 				).
 				Value(opt),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func HostnameForm(hostname *string) *huh.Form {
@@ -35,10 +43,11 @@ func HostnameForm(hostname *string) *huh.Form {
 				Placeholder(*hostname).
 				Value(hostname),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func RootPasswd(rootpasswd *string) *huh.Form {
+
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewInput().
@@ -46,7 +55,7 @@ func RootPasswd(rootpasswd *string) *huh.Form {
 				EchoMode(huh.EchoModePassword).
 				Value(rootpasswd),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func ConfirmForm(confirm *bool, text *string) *huh.Form {
@@ -58,7 +67,7 @@ func ConfirmForm(confirm *bool, text *string) *huh.Form {
 				Negative("No.").
 				Value(confirm),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func AccountsForm(acc_opt *string) *huh.Form {
@@ -73,7 +82,7 @@ func AccountsForm(acc_opt *string) *huh.Form {
 				).
 				Value(acc_opt),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func AccountAddForm(username *string, password *string, sudo *bool) *huh.Form {
@@ -93,7 +102,7 @@ func AccountAddForm(username *string, password *string, sudo *bool) *huh.Form {
 				Negative("No !").
 				Value(sudo),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func AccountRemoveForm(accounts []types.Accounts, selected *string) *huh.Form {
@@ -111,7 +120,7 @@ func AccountRemoveForm(accounts []types.Accounts, selected *string) *huh.Form {
 				Options(options...).
 				Value(selected),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func LocalesForm(locales *[]string, selected *string) *huh.Form {
@@ -126,7 +135,7 @@ func LocalesForm(locales *[]string, selected *string) *huh.Form {
 				Options(options...).
 				Value(selected),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func KeymapForm(keymap *string) *huh.Form {
@@ -137,7 +146,7 @@ func KeymapForm(keymap *string) *huh.Form {
 				Placeholder("de-latin1").
 				Value(keymap),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func TimezoneForm(timezone *string) *huh.Form {
@@ -148,7 +157,7 @@ func TimezoneForm(timezone *string) *huh.Form {
 				Placeholder("UTC").
 				Value(timezone),
 		),
-	)
+	).WithTheme(theme)
 }
 
 func DiskpartForm(disks []string, selected *string) *huh.Form {
@@ -165,5 +174,20 @@ func DiskpartForm(disks []string, selected *string) *huh.Form {
 				Options(options...).
 				Value(selected),
 		),
-	)
+	).WithTheme(theme)
+}
+
+func BootLoaderForm(bootloader *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select A Bootloader").
+				Options(
+					huh.NewOption("Grub", "grub"),
+					huh.NewOption("SystemD-boot", "systemd-boot"),
+					huh.NewOption("Limine", "limine"),
+				).
+				Value(bootloader),
+		),
+	).WithTheme(theme)
 }
