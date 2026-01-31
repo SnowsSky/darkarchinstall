@@ -15,7 +15,7 @@ func main() {
 		return
 	}
 	network.NetworkCheck()
-	for {
+	for forms.Ininstaller {
 		forms.MainForm(&opt).Run()
 		forms.Options_check(opt)
 	}

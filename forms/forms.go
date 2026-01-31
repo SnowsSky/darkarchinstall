@@ -27,6 +27,7 @@ func MainForm(opt *string) *huh.Form {
 					huh.NewOption("Timezone <"+timezone+">", "timezone"),
 					huh.NewOption("Disk partitioning", "diskpart"),
 					huh.NewOption("Select bootloader <"+bootloader+">", "bootloader"),
+					huh.NewOption("Select Desktop Environment", "de"),
 					huh.NewOption("Install Dark Arch", "install"),
 					huh.NewOption("Cancel & exit", "cancel"),
 				).
@@ -188,6 +189,21 @@ func BootLoaderForm(bootloader *string) *huh.Form {
 					huh.NewOption("Limine", "limine"),
 				).
 				Value(bootloader),
+		),
+	).WithTheme(theme)
+}
+
+func SelectDEForm(de *[]string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Options(
+					huh.NewOption("KDE plasma", "plasma").Selected(true),
+					huh.NewOption("XFCE", "xfce"),
+					huh.NewOption("GNOME", "gnome"),
+				).
+				Title("Select Desktop Environments").
+				Value(de),
 		),
 	).WithTheme(theme)
 }

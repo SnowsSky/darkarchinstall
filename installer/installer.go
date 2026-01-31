@@ -1,0 +1,4 @@
+package installer
+
+func Install() {
+}

@@ -3,6 +3,7 @@ package forms
 import (
 	"bufio"
 	"darkarchinstall/fs"
+	"darkarchinstall/installer"
 	"darkarchinstall/types"
 	"fmt"
 	"os"
@@ -18,9 +19,11 @@ var (
 	selectedUser string
 	selected     string
 	locales      []string
+	Ininstaller  bool = true
 	keymap       string
 	timezone     string
-	bootloader   string = "grub"
+	bootloader   string   = "grub"
+	de           []string = []string{"plasma"}
 )
 
 func Options_check(opt string) {
@@ -69,12 +72,19 @@ func Options_check(opt string) {
 			fmt.Println("Error editing disk:", err)
 			return
 		}
-		for {
+		for Ininstaller {
 			MainForm(&opt).Run()
 			Options_check(opt)
 		}
 	case "bootloader":
 		BootLoaderForm(&bootloader).Run()
+	case "de":
+		SelectDEForm(&de).Run()
+	case "install":
+		var text string = "You want to start installation ?"
+		ConfirmForm(&confirm, &text).Run()
+		Ininstaller = false
+		installer.Install()
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()
