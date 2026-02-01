@@ -1,7 +1,6 @@
 package fs
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -52,10 +51,6 @@ func GetDiskLabelType(disktoopen string) (string, error) {
 		return "", err
 	}
 	p, _ := disk.GetPartitionTable()
-	partitions := p.GetPartitions()
-	for partition := range partitions {
-		fmt.Println(partition)
-	}
 	return p.Type(), nil
 }
 
