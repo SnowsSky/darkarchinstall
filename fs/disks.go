@@ -1,9 +1,12 @@
 package fs
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
+
+	"github.com/diskfs/go-diskfs"
 )
 
 func GetDisks() ([]string, error) {
@@ -41,4 +44,21 @@ func EditDisk(disk string) error {
 	cmd.Stderr = os.Stderr
 	cmd.Run()
 	return nil
+}
+
+func GetDiskLabelType(disktoopen string) (string, error) {
+	disk, err := diskfs.Open("disk.img")
+	if err != nil {
+		return "", err
+	}
+	p, _ := disk.GetPartitionTable()
+	partitions := p.GetPartitions()
+	for partition := range partitions {
+		fmt.Println(partition)
+	}
+	return p.Type(), nil
+}
+
+func GetDiskFilesystems(disktocheck string) {
+
 }

@@ -18,6 +18,7 @@ var (
 	rootpasswd   string
 	selectedUser string
 	selected     string
+	selectedDisk string
 	locales      []string
 	Ininstaller  bool = true
 	keymap       string
@@ -63,11 +64,11 @@ func Options_check(opt string) {
 			fmt.Println("Error:", err)
 			return
 		}
-		DiskpartForm(disks, &selected).Run()
+		DiskpartForm(disks, &selectedDisk).Run()
 		if selected == "back" {
 			return
 		}
-		err = fs.EditDisk(selected)
+		err = fs.EditDisk(selectedDisk)
 		if err != nil {
 			fmt.Println("Error editing disk:", err)
 			return
@@ -84,7 +85,7 @@ func Options_check(opt string) {
 		var text string = "You want to start installation ?"
 		ConfirmForm(&confirm, &text).Run()
 		Ininstaller = false
-		installer.Install()
+		installer.Install(&selectedDisk)
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()
