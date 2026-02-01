@@ -47,7 +47,7 @@ func EditDisk(disk string) error {
 }
 
 func GetDiskLabelType(disktoopen string) (string, error) {
-	disk, err := diskfs.Open("disk.img")
+	disk, err := diskfs.Open(disktoopen)
 	if err != nil {
 		return "", err
 	}
