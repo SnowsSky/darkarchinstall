@@ -3,6 +3,8 @@ package fs
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path"
@@ -71,6 +73,23 @@ func EditDisk(disk string) error {
 
 func DetectDiskLayout() string {
 	return ""
+}
+
+func GetPartitionOfDisk(disk string) []string {
+	var partitions []string
+
+	i := 1
+	for {
+		partName := fmt.Sprintf("%s%d", disk, i)
+		_, err := os.Stat(partName)
+		if errors.Is(err, fs.ErrNotExist) {
+			break
+		}
+		partitions = append(partitions, partName)
+		i++
+	}
+
+	return partitions
 }
 
 func GetPartitionType(part string) (PartitionType, error) {
