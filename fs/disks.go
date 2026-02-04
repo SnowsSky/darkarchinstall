@@ -6,12 +6,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
-<<<<<<< HEAD
 	"strings"
-=======
 
 	"github.com/diskfs/go-diskfs"
->>>>>>> 02e1ed98cba8f39a6614b52269b5b4de2182fe05
 )
 
 type PartitionType int
@@ -63,7 +60,6 @@ func EditDisk(disk string) error {
 	return nil
 }
 
-<<<<<<< HEAD
 func DetectDiskLayout() string {
 	return ""
 }
@@ -90,17 +86,4 @@ func GetPartitionType(part string) (PartitionType, error) {
 	default:
 		return -2, errors.New("unsupported partition type")
 	}
-=======
-func GetDiskLabelType(disktoopen string) (string, error) {
-	disk, err := diskfs.Open(disktoopen)
-	if err != nil {
-		return "", err
-	}
-	p, _ := disk.GetPartitionTable()
-	return p.Type(), nil
-}
-
-func GetDiskFilesystems(disktocheck string) {
-
->>>>>>> 02e1ed98cba8f39a6614b52269b5b4de2182fe05
 }
