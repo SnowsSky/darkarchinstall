@@ -20,9 +20,18 @@ const (
 )
 
 type ListBlockPayload struct {
-	BlockDevices []struct{
+	BlockDevices []struct {
 		PartitionTypeName string `json:"parttypename"`
 	} `json:"blockdevices"`
+}
+
+func GetDiskLabelType(disktoopen string) (string, error) {
+	disk, err := diskfs.Open(disktoopen)
+	if err != nil {
+		return "", err
+	}
+	p, _ := disk.GetPartitionTable()
+	return p.Type(), nil
 }
 
 func GetDisks() ([]string, error) {
@@ -72,11 +81,12 @@ func GetPartitionType(part string) (PartitionType, error) {
 
 	var payload ListBlockPayload
 
-	err = json.Unmarshal(ret, &payload); if err != nil {
+	err = json.Unmarshal(ret, &payload)
+	if err != nil {
 		return -1, err
 	}
 
-	switch(strings.ToLower(payload.BlockDevices[0].PartitionTypeName)) {
+	switch strings.ToLower(payload.BlockDevices[0].PartitionTypeName) {
 	case "efi system":
 		return PartitionTypeEFI, nil
 	case "linux filesystem":

@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var accounts []types.Accounts
+var accounts []types.Account
 
 var (
 	confirm      bool
@@ -40,7 +40,7 @@ func Options_check(opt string) {
 
 		switch acc_opt {
 		case "acc_add":
-			var account types.Accounts
+			var account types.Account
 			AccountAddForm(&account.Username, &account.Password, &account.SudoPerms).Run()
 			accounts = append(accounts, account)
 
@@ -108,7 +108,7 @@ func CheckRoot() error {
 }
 
 func remove_Account() {
-	var updated []types.Accounts
+	var updated []types.Account
 	for _, acc := range accounts {
 		if acc.Username != selectedUser {
 			updated = append(updated, acc)

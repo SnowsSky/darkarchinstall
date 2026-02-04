@@ -106,7 +106,7 @@ func AccountAddForm(username *string, password *string, sudo *bool) *huh.Form {
 	).WithTheme(theme)
 }
 
-func AccountRemoveForm(accounts []types.Accounts, selected *string) *huh.Form {
+func AccountRemoveForm(accounts []types.Account, selected *string) *huh.Form {
 	options := make([]huh.Option[string], 0)
 
 	for _, acc := range accounts {
