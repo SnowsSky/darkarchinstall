@@ -3,6 +3,9 @@ package installer
 import (
 	"darkarchinstall/fs"
 	"fmt"
+	"os"
+
+	"github.com/charmbracelet/huh/spinner"
 )
 
 var RootPartition string = ""
@@ -28,13 +31,19 @@ func Install(disk *string) {
 		}
 
 	}
-
-	// format disk
-	err := fs.FormatDisk(RootPartition, EFIPartition, SwapPartition)
-	if err != nil {
-		fmt.Println(err)
-		return
+	action := func() {
+		err := fs.FormatDisk(RootPartition, EFIPartition, SwapPartition)
+		if err != nil {
+			fmt.Println("Failed", err)
+			os.Exit(1)
+		}
 	}
+	if err := spinner.New().Title("Formating Partitions...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+
+	}
+	// format disk
 }
 
 /*
