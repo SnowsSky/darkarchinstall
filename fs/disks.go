@@ -104,15 +104,52 @@ func GetPartitionType(part string) (PartitionType, error) {
 	if err != nil {
 		return -1, err
 	}
-
 	switch strings.ToLower(payload.BlockDevices[0].PartitionTypeName) {
 	case "efi system":
 		return PartitionTypeEFI, nil
-	case "linux filesystem":
+	case "linux":
 		return PartitionTypeLinuxFileSystem, nil
 	case "linux swap":
 		return PartitionTypeLinuxSwap, nil
 	default:
 		return -2, errors.New("unsupported partition type")
 	}
+}
+
+func FormatDisk(Rootpart string, efipart string, swapppart string) error {
+	if efipart != "" {
+		//gpt (Format the EFI partition)
+		cmd := exec.Command("mkfs.fat", "-F", "32", efipart)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	if Rootpart != "" {
+		cmd := exec.Command("mkfs.ext4", Rootpart)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	if swapppart != "" {
+		cmd := exec.Command("mkswap", swapppart)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
