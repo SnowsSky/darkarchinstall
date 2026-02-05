@@ -85,7 +85,7 @@ func Options_check(opt string) {
 		var text string = "You want to start installation ?"
 		ConfirmForm(&confirm, &text).Run()
 		Ininstaller = false
-		installer.Install(&selectedDisk)
+		installer.Setup(&selectedDisk, bootloader, de)
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()

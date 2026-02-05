@@ -120,7 +120,6 @@ func FormatDisk(Rootpart string, efipart string, swapppart string) error {
 	if efipart != "" {
 		//gpt (Format the EFI partition)
 		cmd := exec.Command("mkfs.fat", "-F", "32", efipart)
-		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err := cmd.Run()
@@ -131,7 +130,6 @@ func FormatDisk(Rootpart string, efipart string, swapppart string) error {
 
 	if Rootpart != "" {
 		cmd := exec.Command("mkfs.ext4", Rootpart)
-		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err := cmd.Run()
@@ -142,7 +140,6 @@ func FormatDisk(Rootpart string, efipart string, swapppart string) error {
 
 	if swapppart != "" {
 		cmd := exec.Command("mkswap", swapppart)
-		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err := cmd.Run()
@@ -151,5 +148,36 @@ func FormatDisk(Rootpart string, efipart string, swapppart string) error {
 		}
 	}
 
+	return nil
+}
+
+func MountPartitions(Rootpart string, efipart string, swapppart string) error {
+	if Rootpart != "" {
+		cmd := exec.Command("mount", Rootpart, "/mnt")
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	if swapppart != "" {
+		cmd := exec.Command("swapon", swapppart)
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	if efipart != "" {
+		cmd := exec.Command("mount", "--mkdir", efipart, "/mnt/boot")
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
