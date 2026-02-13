@@ -196,9 +196,9 @@ func SelectDEForm(de *[]string) *huh.Form {
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
 				Options(
-					huh.NewOption("KDE plasma", "plasma konsole").Selected(true),
-					huh.NewOption("XFCE", "xfce4 xfce4-goodies mugshot"),
-					huh.NewOption("GNOME", "gnome gnome-terminal"),
+					huh.NewOption("KDE plasma", "plasma").Selected(true),
+					huh.NewOption("XFCE", "xfce4"),
+					huh.NewOption("GNOME", "gnome"),
 				).
 				Title("Select Desktop Environments").
 				Value(de),
