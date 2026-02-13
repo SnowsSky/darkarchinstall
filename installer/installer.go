@@ -229,7 +229,7 @@ func InstallBlackArchRepos() error {
 
 func SetupBootloader(bootloader string) error {
 	if bootloader == "grub" {
-		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=GRUB")
 
 		cmd.Stderr = os.Stderr
 
@@ -397,7 +397,7 @@ func Install(bootloader string, de []string) error {
 
 func InstallExtraPackages() {
 	// install from darkarchrepos
-	cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "yay", "snowfetch")
+	cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "yay", "snowfetch")
 
 	cmd.Stderr = os.Stderr
 
