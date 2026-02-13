@@ -200,28 +200,34 @@ func ExitInstall() {
 }
 
 func InstallBlackArchRepos() error {
-	cmd := exec.Command("arch-chroot", "/mnt", "curl", "-O", "https://blackarch.org/strap.sh")
-
+	cmd := exec.Command("curl", "-O", "https://blackarch.org/strap.sh")
 	cmd.Stderr = os.Stderr
-
 	err := cmd.Run()
 	if err != nil {
 		return err
 	}
-	cmd = exec.Command("arch-chroot", "/mnt", "chmod", "+x", "strap.sh")
-	err = cmd.Run()
-	if err != nil {
-		return err
-	}
 
-	cmd = exec.Command("arch-chroot", "/mnt", "./strap.sh")
-
+	cmd = exec.Command("cp", "strap.sh", "/mnt/root/strap.sh")
 	cmd.Stderr = os.Stderr
-
 	err = cmd.Run()
 	if err != nil {
 		return err
 	}
+	cmd = exec.Command("arch-chroot", "/mnt", "chmod", "+x", "/root/strap.sh")
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
+	cmd = exec.Command("arch-chroot", "/mnt", "/root/strap.sh")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
