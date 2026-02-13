@@ -156,7 +156,7 @@ func AddDarkArchRepos() error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch\n#[darkarch-unstable]\n#SigLevel = Optional TrustAll\n#Server = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/unstable/binaries/$arch"); err != nil {
+	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch\n#[darkarch-unstable]\n#SigLevel = Optional TrustAll\n#Server = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/unstable/binaries/$arch\n"); err != nil {
 		return err
 	}
 	cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-Sy")
@@ -175,12 +175,12 @@ func EnableServices() error {
 	cmd := exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "NetworkManager")
 	err := cmd.Run()
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
 	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "ligthdm")
 	err = cmd.Run()
 	if err != nil {
-		return err
+		fmt.Println(err)
 	}
 	return nil
 }
@@ -322,6 +322,7 @@ func SetTime(timezone *string) {
 }
 
 func SetLocalisation(locale string) {
+	result := strings.Split(locale, " ")[0]
 	f, err := os.OpenFile("/mnt/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
@@ -329,7 +330,7 @@ func SetLocalisation(locale string) {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n" + locale); err != nil {
+	if _, err := f.WriteString("\n" + result); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
