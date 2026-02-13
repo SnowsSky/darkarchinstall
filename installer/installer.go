@@ -233,8 +233,7 @@ func InstallBlackArchRepos() error {
 
 func SetupBootloader(bootloader string) error {
 	if bootloader == "grub" {
-		exec.Command("mkdir", "-p", "/mnt/boot/efi").Run()
-		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot/efi", "--bootloader-id=GRUB")
+		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
 
 		cmd.Stderr = os.Stderr
 

@@ -7,7 +7,7 @@ import (
 )
 
 var opt string
-var version string = "1.0.10"
+var version string = "1.0.11"
 
 func main() {
 	err := forms.CheckRoot()
