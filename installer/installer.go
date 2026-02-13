@@ -177,7 +177,7 @@ func EnableServices() error {
 	if err != nil {
 		fmt.Println(err)
 	}
-	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "ligthdm")
+	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "lightdm")
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println(err)
@@ -330,7 +330,7 @@ func SetLocalisation(locale string) {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n" + result); err != nil {
+	if _, err := f.WriteString("\n" + locale); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
@@ -346,7 +346,7 @@ func SetLocalisation(locale string) {
 		return
 	}
 
-	data := []byte("LANG=" + locale)
+	data := []byte("LANG=" + result)
 	err = os.WriteFile("/mnt/etc/locale.conf", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing locales:", err)
