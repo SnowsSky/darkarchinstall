@@ -85,7 +85,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		err := AddDarkArchRepos()
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
 		EditOSRelease()
 		SetTime(timezone)
@@ -100,9 +100,13 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		err = cmd.Run()
 		if err != nil {
 			fmt.Println(err)
-			return
+			os.Exit(1)
 		}
-		SetupAccounts(accounts)
+		err = SetupAccounts(accounts)
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 	}
 	if err := spinner.New().Title("System Configuration...").Action(action).Run(); err != nil {
 		fmt.Println("Failed:", err)
@@ -120,13 +124,29 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		os.Exit(1)
 	}
 	action = func() {
-		InstallBlackArchRepos()
+		err := InstallBlackArchRepos()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
 		InstallAURHelper(accounts)
 	}
 	if err := spinner.New().Title("Installing extras features...").Action(action).Run(); err != nil {
 		fmt.Println("Failed:", err)
 		os.Exit(1)
 	}
+	action = func() {
+		err := EnableServices()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+	}
+	if err := spinner.New().Title("Enabling services...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+	}
+
 	ExitInstall()
 }
 
@@ -152,6 +172,20 @@ func AddDarkArchRepos() error {
 
 }
 
+func EnableServices() error {
+	cmd := exec.Command("systemctl", "enable", "NetworkManager")
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	cmd = exec.Command("systemctl", "enable", "ligthdm")
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func ExitInstall() {
 	cmd := exec.Command("exit")
 	err := cmd.Run()
@@ -173,21 +207,19 @@ func ExitInstall() {
 	}
 }
 
-func InstallBlackArchRepos() {
+func InstallBlackArchRepos() error {
 	cmd := exec.Command("curl", "-O", "https://blackarch.org/strap.sh")
 
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 	cmd = exec.Command("chmod", "+x", "strap.sh")
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
 
 	cmd = exec.Command("./strap.sh")
@@ -196,9 +228,9 @@ func InstallBlackArchRepos() {
 
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err
 	}
+	return nil
 }
 
 func SetupBootloader(bootloader string) error {
@@ -224,7 +256,7 @@ func SetupBootloader(bootloader string) error {
 	return nil
 }
 
-func SetupAccounts(accounts []types.Account) {
+func SetupAccounts(accounts []types.Account) error {
 	for _, account := range accounts {
 		if !account.SudoPerms {
 			cmd := exec.Command("useradd", "-m", account.Username)
@@ -233,8 +265,7 @@ func SetupAccounts(accounts []types.Account) {
 
 			err := cmd.Run()
 			if err != nil {
-				fmt.Println(err)
-				return
+				return err
 			}
 		} else {
 			cmd := exec.Command("useradd", "-mG", "wheel", account.Username)
@@ -243,8 +274,7 @@ func SetupAccounts(accounts []types.Account) {
 
 			err := cmd.Run()
 			if err != nil {
-				fmt.Println(err)
-				return
+				return err
 			}
 		}
 		cmd := exec.Command("chpasswd")
@@ -253,10 +283,10 @@ func SetupAccounts(accounts []types.Account) {
 
 		err := cmd.Run()
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 	}
+	return nil
 
 }
 
@@ -275,16 +305,10 @@ func Chroot() {
 }
 
 func EditOSRelease() {
-
-	f, err := os.OpenFile("/etc/os-release", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	data := []byte("NAME=\"DarkArch Linux\"\nPRETTY_NAME=\"DarkArch Linux\"\nID=darkarch\nID_LIKE=arch\nAINSI_COLOR=\"0;31\"\nHOME_URL=\"https://github.com/kam/darkarch\"")
+	err := os.WriteFile("/etc/os-release", data, 0644)
 	if err != nil {
-		fmt.Println("Error opening file:", err)
-		return
-	}
-	defer f.Close()
-
-	if _, err := f.WriteString("NAME=\"DarkArch Linux\"\nPRETTY_NAME=\"DarkArch Linux\"\nID=darkarch\nID_LIKE=arch\nAINSI_COLOR=\"0;31\"\nHOME_URL=\"https://github.com/kam/darkarch\""); err != nil {
-		fmt.Println("Error writing to file:", err)
+		fmt.Println("Error writing locales:", err)
 		return
 	}
 }
