@@ -386,25 +386,33 @@ func SetHostname(hostname string) {
 }
 
 func Install(bootloader string, de []string) error {
-	to_install := strings.Builder{}
-	to_install.WriteString("base" + " linux" + " linux-firmware" + " efibootmgr" + " lightdm" + " lightdm-gtk-greeter" + " sudo" + " vim" + " networkmanager" + " htop" + " firefox")
-	to_install.WriteString(" " + bootloader)
+	packages := []string{
+		"base",
+		"linux",
+		"linux-firmware",
+		"efibootmgr",
+		"lightdm",
+		"lightdm-gtk-greeter",
+		"sudo",
+		"vim",
+		"networkmanager",
+		"htop",
+		"firefox",
+		bootloader,
+	}
 
 	if len(de) > 0 {
-		to_install.WriteString(" ")
-		to_install.WriteString(strings.Join(de, " "))
+		packages = append(packages, de...)
 	}
-	//to_install.String()
-	cmd := exec.Command("pacstrap", "-K", "/mnt", to_install.String())
+
+	args := append([]string{"-K", "/mnt"}, packages...)
+
+	cmd := exec.Command("pacstrap", args...)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
-	if err != nil {
-		return err
-	}
-	return nil
+	return cmd.Run()
 }
 
 func InstallExtraPackages() {
