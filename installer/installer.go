@@ -151,7 +151,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 }
 
 func AddDarkArchRepos() error {
-	f, err := os.OpenFile("/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/etc/pacman.conf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -235,7 +235,7 @@ func InstallBlackArchRepos() error {
 
 func SetupBootloader(bootloader string) error {
 	if bootloader == "grub" {
-		cmd := exec.Command("grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--botloader-id=GRUB")
+		cmd := exec.Command("grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
 
 		cmd.Stderr = os.Stderr
 
@@ -308,7 +308,7 @@ func EditOSRelease() {
 	data := []byte("NAME=\"DarkArch Linux\"\nPRETTY_NAME=\"DarkArch Linux\"\nID=darkarch\nID_LIKE=arch\nAINSI_COLOR=\"0;31\"\nHOME_URL=\"https://github.com/kam/darkarch\"")
 	err := os.WriteFile("/etc/os-release", data, 0644)
 	if err != nil {
-		fmt.Println("Error writing locales:", err)
+		fmt.Println("Error writing os-release:", err)
 		return
 	}
 }
