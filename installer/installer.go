@@ -80,7 +80,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	Chroot()
+	//after chroot
 	action = func() {
 		err := AddDarkArchRepos()
 		if err != nil {
@@ -151,7 +151,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 }
 
 func AddDarkArchRepos() error {
-	f, err := os.OpenFile("/etc/pacman.conf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/mnt/etc/pacman.conf", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func AddDarkArchRepos() error {
 	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch\n#[darkarch-unstable]\n#SigLevel = Optional TrustAll\n#Server = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/unstable/binaries/$arch"); err != nil {
 		return err
 	}
-	cmd := exec.Command("pacman", "-Sy")
+	cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-Sy")
 
 	cmd.Stderr = os.Stderr
 
@@ -173,12 +173,12 @@ func AddDarkArchRepos() error {
 }
 
 func EnableServices() error {
-	cmd := exec.Command("systemctl", "enable", "NetworkManager")
+	cmd := exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "NetworkManager")
 	err := cmd.Run()
 	if err != nil {
 		return err
 	}
-	cmd = exec.Command("systemctl", "enable", "ligthdm")
+	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "ligthdm")
 	err = cmd.Run()
 	if err != nil {
 		return err
@@ -187,14 +187,8 @@ func EnableServices() error {
 }
 
 func ExitInstall() {
-	cmd := exec.Command("exit")
+	cmd := exec.Command("umount", "-R", "/mnt")
 	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	cmd = exec.Command("umount", "-R", "/mnt")
-	err = cmd.Run()
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -208,7 +202,7 @@ func ExitInstall() {
 }
 
 func InstallBlackArchRepos() error {
-	cmd := exec.Command("curl", "-O", "https://blackarch.org/strap.sh")
+	cmd := exec.Command("arch-chroot", "/mnt", "curl", "-O", "https://blackarch.org/strap.sh")
 
 	cmd.Stderr = os.Stderr
 
@@ -216,13 +210,13 @@ func InstallBlackArchRepos() error {
 	if err != nil {
 		return err
 	}
-	cmd = exec.Command("chmod", "+x", "strap.sh")
+	cmd = exec.Command("arch-chroot", "/mnt", "chmod", "+x", "strap.sh")
 	err = cmd.Run()
 	if err != nil {
 		return err
 	}
 
-	cmd = exec.Command("./strap.sh")
+	cmd = exec.Command("arch-chroot", "/mnt", "./strap.sh")
 
 	cmd.Stderr = os.Stderr
 
@@ -235,7 +229,7 @@ func InstallBlackArchRepos() error {
 
 func SetupBootloader(bootloader string) error {
 	if bootloader == "grub" {
-		cmd := exec.Command("grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
 
 		cmd.Stderr = os.Stderr
 
@@ -243,7 +237,7 @@ func SetupBootloader(bootloader string) error {
 		if err != nil {
 			return err
 		}
-		cmd = exec.Command("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+		cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 
 		cmd.Stderr = os.Stderr
 
@@ -259,7 +253,7 @@ func SetupBootloader(bootloader string) error {
 func SetupAccounts(accounts []types.Account) error {
 	for _, account := range accounts {
 		if !account.SudoPerms {
-			cmd := exec.Command("useradd", "-m", account.Username)
+			cmd := exec.Command("arch-chroot", "/mnt", "useradd", "-m", account.Username)
 
 			cmd.Stderr = os.Stderr
 
@@ -268,7 +262,7 @@ func SetupAccounts(accounts []types.Account) error {
 				return err
 			}
 		} else {
-			cmd := exec.Command("useradd", "-mG", "wheel", account.Username)
+			cmd := exec.Command("arch-chroot", "/mnt", "useradd", "-mG", "wheel", account.Username)
 
 			cmd.Stderr = os.Stderr
 
@@ -277,7 +271,7 @@ func SetupAccounts(accounts []types.Account) error {
 				return err
 			}
 		}
-		cmd := exec.Command("chpasswd")
+		cmd := exec.Command("arch-chroot", "/mnt", "chpasswd")
 		cmd.Stdin = strings.NewReader(account.Username + ":" + account.Password + "\n")
 		cmd.Stderr = os.Stderr
 
@@ -290,23 +284,9 @@ func SetupAccounts(accounts []types.Account) error {
 
 }
 
-func Chroot() {
-	//arch-chroot /mnt
-	cmd := exec.Command("arch-chroot", "/mnt")
-
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-}
-
 func EditOSRelease() {
 	data := []byte("NAME=\"DarkArch Linux\"\nPRETTY_NAME=\"DarkArch Linux\"\nID=darkarch\nID_LIKE=arch\nAINSI_COLOR=\"0;31\"\nHOME_URL=\"https://github.com/kam/darkarch\"")
-	err := os.WriteFile("/etc/os-release", data, 0644)
+	err := os.WriteFile("/mnt/etc/os-release", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing os-release:", err)
 		return
@@ -314,7 +294,7 @@ func EditOSRelease() {
 }
 
 func SetTime(timezone *string) {
-	cmd := exec.Command("ln", "-sf", fmt.Sprintf("/usr/share/zoneinfo/%s", *timezone), "/etc/localtime")
+	cmd := exec.Command("arch-chroot", "/mnt", "ln", "-sf", fmt.Sprintf("/usr/share/zoneinfo/%s", *timezone), "/etc/localtime")
 
 	cmd.Stderr = os.Stderr
 
@@ -323,7 +303,7 @@ func SetTime(timezone *string) {
 		fmt.Println(err)
 		return
 	}
-	cmd = exec.Command("hwclock", "--systohc")
+	cmd = exec.Command("arch-chroot", "/mnt", "hwclock", "--systohc")
 
 	cmd.Stderr = os.Stderr
 
@@ -335,7 +315,7 @@ func SetTime(timezone *string) {
 }
 
 func SetLocalisation(locale string) {
-	f, err := os.OpenFile("/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile("/mnt/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		fmt.Println("Error opening file:", err)
 		return
@@ -347,7 +327,7 @@ func SetLocalisation(locale string) {
 		return
 	}
 
-	cmd := exec.Command("locale-gen")
+	cmd := exec.Command("arch-chroot", "/mnt", "locale-gen")
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
@@ -359,7 +339,7 @@ func SetLocalisation(locale string) {
 	}
 
 	data := []byte("LANG=" + locale)
-	err = os.WriteFile("/etc/locale.conf", data, 0644)
+	err = os.WriteFile("/mnt/etc/locale.conf", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing locales:", err)
 		return
@@ -369,7 +349,7 @@ func SetLocalisation(locale string) {
 
 func SetKeymap(keymap string) {
 	data := []byte("KEYMAP=" + keymap)
-	err := os.WriteFile("/etc/vconsole.conf", data, 0644)
+	err := os.WriteFile("/mnt/etc/vconsole.conf", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing locales:", err)
 		return
@@ -378,7 +358,7 @@ func SetKeymap(keymap string) {
 
 func SetHostname(hostname string) {
 	data := []byte(hostname)
-	err := os.WriteFile("/etc/hostname", data, 0644)
+	err := os.WriteFile("/mnt/etc/hostname", data, 0644)
 	if err != nil {
 		fmt.Println("Error writing locales:", err)
 		return
@@ -417,7 +397,7 @@ func Install(bootloader string, de []string) error {
 
 func InstallExtraPackages() {
 	// install from darkarchrepos
-	cmd := exec.Command("pacman", "-S", "yay", "snowfetch")
+	cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "yay", "snowfetch")
 
 	cmd.Stderr = os.Stderr
 
