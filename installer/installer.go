@@ -91,8 +91,9 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		SetKeymap(keymap)
 		SetHostname(hostname)
 		// set root password
-		cmd = exec.Command("chpasswd")
+		cmd := exec.Command("arch-chroot", "/mnt", "chpasswd")
 		cmd.Stdin = strings.NewReader("root:" + rootpasswd + "\n")
+		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err = cmd.Run()
@@ -277,12 +278,14 @@ func SetupAccounts(accounts []types.Account) error {
 		}
 		cmd := exec.Command("arch-chroot", "/mnt", "chpasswd")
 		cmd.Stdin = strings.NewReader(account.Username + ":" + account.Password + "\n")
+		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
 		err := cmd.Run()
 		if err != nil {
 			return err
 		}
+
 	}
 	return nil
 
