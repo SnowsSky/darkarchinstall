@@ -330,7 +330,7 @@ func SetLocalisation(locale string) {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n" + locale); err != nil {
+	if _, err := f.WriteString(locale); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
