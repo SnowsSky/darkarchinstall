@@ -18,18 +18,16 @@ var SwapPartition string = ""
 func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, accounts []types.Account) {
 	partitions := fs.GetPartitionOfDisk(*disk)
 	for _, partition := range partitions {
-		_, err := fs.GetPartitionType(partition)
+		Parttype, err := fs.GetPartitionType(partition)
 		if err != nil {
 			fmt.Println(err)
 		}
-		if fs.PartitionTypeLinuxFileSystem == 1 {
+		switch Parttype {
+		case fs.PartitionTypeLinuxFileSystem:
 			RootPartition = partition
-		}
-		if fs.PartitionTypeEFI == 1 {
+		case fs.PartitionTypeEFI:
 			EFIPartition = partition
-
-		}
-		if fs.PartitionTypeLinuxSwap == 1 {
+		case fs.PartitionTypeLinuxSwap:
 			SwapPartition = partition
 		}
 
