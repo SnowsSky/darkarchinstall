@@ -107,12 +107,16 @@ func GetPartitionType(part string) (PartitionType, error) {
 	switch strings.ToLower(payload.BlockDevices[0].PartitionTypeName) {
 	case "efi system":
 		return PartitionTypeEFI, nil
+	case "w95 fat32":
+		return PartitionTypeEFI, nil
+	case "efi (fat-12/16/32)":
+		return PartitionTypeEFI, nil
 	case "linux":
 		return PartitionTypeLinuxFileSystem, nil
 	case "linux swap":
 		return PartitionTypeLinuxSwap, nil
 	default:
-		return -2, errors.New("unsupported partition type")
+		return -2, errors.New("unsupported partition type: " + strings.ToLower(payload.BlockDevices[0].PartitionTypeName))
 	}
 }
 
