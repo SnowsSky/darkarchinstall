@@ -129,7 +129,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		InstallAURHelper(accounts)
+		InstallExtraPackages()
 	}
 	if err := spinner.New().Title("Installing extras features...").Action(action).Run(); err != nil {
 		fmt.Println("Failed:", err)
@@ -157,7 +157,7 @@ func AddDarkArchRepos() error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch"); err != nil {
+	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch\n[darkarch-unstable]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/unstable/binaries/$arch"); err != nil {
 		return err
 	}
 	cmd := exec.Command("pacman", "-Sy")
@@ -407,9 +407,9 @@ func Install(bootloader string, de []string) error {
 	return nil
 }
 
-func InstallAURHelper(accounts []types.Account) {
-
-	cmd := exec.Command("pacman", "-S", "yay")
+func InstallExtraPackages() {
+	// install from darkarchrepos
+	cmd := exec.Command("pacman", "-S", "yay", "snowfetch")
 
 	cmd.Stderr = os.Stderr
 
