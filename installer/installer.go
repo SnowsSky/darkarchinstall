@@ -78,7 +78,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 	err := cmd.Run()
 	if err != nil {
 		fmt.Println(err)
-		return
+		os.Exit(1)
 	}
 	Chroot()
 	action = func() {
@@ -137,7 +137,7 @@ func AddDarkArchRepos() error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/binaries/$arch"); err != nil {
+	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/main/binaries/$arch"); err != nil {
 		return err
 	}
 	cmd := exec.Command("pacman", "-Sy")
@@ -363,7 +363,7 @@ func SetHostname(hostname string) {
 
 func Install(bootloader string, de []string) error {
 	to_install := strings.Builder{}
-	to_install.WriteString("base linux linux-firmware efibootmgr lightdm lightdm-gtk-greeter sudo vim networkmanager htop")
+	to_install.WriteString("base linux linux-firmware efibootmgr lightdm lightdm-gtk-greeter sudo vim networkmanager htop firefox")
 	to_install.WriteString(" " + bootloader)
 
 	if len(de) > 0 {
