@@ -137,7 +137,7 @@ func AddDarkArchRepos() error {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString("\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/binaries/$arch"); err != nil {
+	if _, err := f.WriteString("\n[darkarch]\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/binaries/$arch"); err != nil {
 		return err
 	}
 	cmd := exec.Command("pacman", "-Sy")
@@ -395,12 +395,3 @@ func InstallAURHelper(accounts []types.Account) {
 		return
 	}
 }
-
-/*
-1 -> boot partition (if gpt)? ✅
-2 -> root part ? ✅
-3 -> swap ?✅
-4 -> Homepart ? ❌
-
-
-*/
