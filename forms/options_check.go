@@ -13,21 +13,22 @@ import (
 var accounts []types.Account
 
 var (
-	confirm      bool
-	hostname     string = "darkarch"
-	rootpasswd   string
-	selectedUser string
-	selected     string
-	selectedDisk string
-	locales      []string
-	Ininstaller  bool = true
-	keymap       string
-	timezone     string
-	bootloader   string   = "grub"
-	de           []string = []string{"plasma"}
+	confirm         bool
+	hostname        string = "darkarch"
+	rootpasswd      string
+	selectedUser    string
+	selected        string
+	selected_locale string
+	selectedDisk    string
+	locales         []string
+	Ininstaller     bool = true
+	keymap          string
+	timezone        string
+	bootloader      string   = "grub"
+	de              []string = []string{"plasma"}
 )
 
-func Options_check(opt string) {
+func Options_check(opt string, version string) {
 	//checks
 	switch opt {
 	case "hostname":
@@ -53,7 +54,7 @@ func Options_check(opt string) {
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		LocalesForm(&locales, &selected).Run()
+		LocalesForm(&locales, &selected_locale).Run()
 	case "keymap":
 		KeymapForm(&keymap).Run()
 	case "timezone":
@@ -74,8 +75,8 @@ func Options_check(opt string) {
 			return
 		}
 		for Ininstaller {
-			MainForm(&opt).Run()
-			Options_check(opt)
+			MainForm(&opt, version).Run()
+			Options_check(opt, version)
 		}
 	case "bootloader":
 		BootLoaderForm(&bootloader).Run()
@@ -85,7 +86,7 @@ func Options_check(opt string) {
 		var text string = "You want to start installation ?"
 		ConfirmForm(&confirm, &text).Run()
 		Ininstaller = false
-		installer.Setup(&selectedDisk, bootloader, de)
+		installer.Setup(&selectedDisk, bootloader, de, &timezone, selected_locale, keymap, hostname, rootpasswd, accounts)
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()

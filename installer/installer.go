@@ -2,6 +2,7 @@ package installer
 
 import (
 	"darkarchinstall/fs"
+	"darkarchinstall/types"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,7 +15,7 @@ var RootPartition string = ""
 var EFIPartition string = ""
 var SwapPartition string = ""
 
-func Setup(disk *string, bootloader string, de []string) {
+func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, accounts []types.Account) {
 	partitions := fs.GetPartitionOfDisk(*disk)
 	for _, partition := range partitions {
 		_, err := fs.GetPartitionType(partition)
@@ -59,12 +60,310 @@ func Setup(disk *string, bootloader string, de []string) {
 		fmt.Println("Failed:", err)
 		os.Exit(1)
 	}
+	action = func() {
+		err := Install(bootloader, de)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err := spinner.New().Title("Installing DarkArch...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+	}
+	cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
+
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	Chroot()
+	action = func() {
+		err := AddDarkArchRepos()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		EditOSRelease()
+		SetTime(timezone)
+		SetLocalisation(locale)
+		SetKeymap(keymap)
+		SetHostname(hostname)
+		// set root password
+		cmd = exec.Command("chpasswd")
+		cmd.Stdin = strings.NewReader("root:" + rootpasswd + "\n")
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		SetupAccounts(accounts)
+	}
+	if err := spinner.New().Title("System Configuration...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+	}
+	action = func() {
+		err := SetupBootloader(bootloader)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+	if err := spinner.New().Title("Installing bootloader...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+	}
+	action = func() {
+		InstallBlackArchRepos()
+		InstallAURHelper(accounts)
+	}
+	if err := spinner.New().Title("Installing extras features...").Action(action).Run(); err != nil {
+		fmt.Println("Failed:", err)
+		os.Exit(1)
+	}
+	ExitInstall()
+}
+
+func AddDarkArchRepos() error {
+	f, err := os.OpenFile("/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString("\nSigLevel = Optional TrustAll\nServer = https://raw.githubusercontent.com/darkarchlinux/DarkArchPackages/main/binaries/$arch"); err != nil {
+		return err
+	}
+	cmd := exec.Command("pacman", "-Sy")
+
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
 
 }
 
-func Install(bootloader string, de []string) {
+func ExitInstall() {
+	cmd := exec.Command("exit")
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	cmd = exec.Command("umount", "-R", "/mnt")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	cmd = exec.Command("reboot")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func InstallBlackArchRepos() {
+	cmd := exec.Command("curl", "-O", "https://blackarch.org/strap.sh")
+
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	cmd = exec.Command("chmod", "+x", "strap.sh")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	cmd = exec.Command("./strap.sh")
+
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func SetupBootloader(bootloader string) error {
+	if bootloader == "grub" {
+		cmd := exec.Command("grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--botloader-id=GRUB")
+
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+		cmd = exec.Command("grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+
+		cmd.Stderr = os.Stderr
+
+		err = cmd.Run()
+		if err != nil {
+			return err
+		}
+
+	}
+	return nil
+}
+
+func SetupAccounts(accounts []types.Account) {
+	for _, account := range accounts {
+		if !account.SudoPerms {
+			cmd := exec.Command("useradd", "-m", account.Username)
+
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		} else {
+			cmd := exec.Command("useradd", "-mG", "wheel", account.Username)
+
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+		}
+		cmd := exec.Command("chpasswd")
+		cmd.Stdin = strings.NewReader(account.Username + ":" + account.Password + "\n")
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+	}
+
+}
+
+func Chroot() {
+	//arch-chroot /mnt
+	cmd := exec.Command("arch-chroot", "/mnt")
+
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+}
+
+func EditOSRelease() {
+
+	f, err := os.OpenFile("/etc/os-release", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString("NAME=\"DarkArch Linux\"\nPRETTY_NAME=\"DarkArch Linux\"\nID=darkarch\nID_LIKE=arch\nAINSI_COLOR=\"0;31\"\nHOME_URL=\"https://github.com/kam/darkarch\""); err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+}
+
+func SetTime(timezone *string) {
+	cmd := exec.Command("ln", "-sf", fmt.Sprintf("/usr/share/zoneinfo/%s", *timezone), "/etc/localtime")
+
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	cmd = exec.Command("hwclock", "--systohc")
+
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+}
+
+func SetLocalisation(locale string) {
+	f, err := os.OpenFile("/etc/locale.gen", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("Error opening file:", err)
+		return
+	}
+	defer f.Close()
+
+	if _, err := f.WriteString("\n" + locale); err != nil {
+		fmt.Println("Error writing to file:", err)
+		return
+	}
+
+	cmd := exec.Command("locale-gen")
+
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	data := []byte("LANG=" + locale)
+	err = os.WriteFile("/etc/locale.conf", data, 0644)
+	if err != nil {
+		fmt.Println("Error writing locales:", err)
+		return
+	}
+
+}
+
+func SetKeymap(keymap string) {
+	data := []byte("KEYMAP=" + keymap)
+	err := os.WriteFile("/etc/vconsole.conf", data, 0644)
+	if err != nil {
+		fmt.Println("Error writing locales:", err)
+		return
+	}
+}
+
+func SetHostname(hostname string) {
+	data := []byte(hostname)
+	err := os.WriteFile("/etc/hostname", data, 0644)
+	if err != nil {
+		fmt.Println("Error writing locales:", err)
+		return
+	}
+}
+
+func Install(bootloader string, de []string) error {
 	to_install := strings.Builder{}
-	to_install.WriteString("base linux linux-firmware efibootmgr lightdm")
+	to_install.WriteString("base linux linux-firmware efibootmgr lightdm lightdm-gtk-greeter sudo vim networkmanager htop")
 	to_install.WriteString(" " + bootloader)
 
 	if len(de) > 0 {
@@ -75,6 +374,19 @@ func Install(bootloader string, de []string) {
 	cmd := exec.Command("pacstrap", "-K", "/mnt", to_install.String())
 
 	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func InstallAURHelper(accounts []types.Account) {
+
+	cmd := exec.Command("pacman", "-S", "yay")
+
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()

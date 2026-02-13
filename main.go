@@ -7,6 +7,7 @@ import (
 )
 
 var opt string
+var version string = "1.0.0-dev-1"
 
 func main() {
 	err := forms.CheckRoot()
@@ -16,7 +17,7 @@ func main() {
 	}
 	network.NetworkCheck()
 	for forms.Ininstaller {
-		forms.MainForm(&opt).Run()
-		forms.Options_check(opt)
+		forms.MainForm(&opt, version).Run()
+		forms.Options_check(opt, version)
 	}
 }

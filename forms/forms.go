@@ -9,7 +9,7 @@ import (
 
 var theme = huh.ThemeBase()
 
-func MainForm(opt *string) *huh.Form {
+func MainForm(opt *string, version string) *huh.Form {
 	// Theme setup
 	theme.Focused.TextInput.Cursor = lipgloss.NewStyle().Foreground(lipgloss.Color("#eb0e0e"))
 	theme.Focused.Title = lipgloss.NewStyle().Foreground(lipgloss.Color("#e7130cd8")).Bold(true)
@@ -17,7 +17,7 @@ func MainForm(opt *string) *huh.Form {
 	return huh.NewForm(
 		huh.NewGroup(
 			huh.NewSelect[string]().
-				Title("Welcome to darkarchinstall !").
+				Title("Welcome to darkarchinstall@"+version+" !").
 				Options(
 					huh.NewOption("Select Hostname <"+hostname+">", "hostname"),
 					huh.NewOption("Set root password", "rootpasswd"),
@@ -155,7 +155,7 @@ func TimezoneForm(timezone *string) *huh.Form {
 		huh.NewGroup(
 			huh.NewInput().
 				Title("Enter timezone:").
-				Placeholder("UTC").
+				Placeholder("Europe/Paris").
 				Value(timezone),
 		),
 	).WithTheme(theme)
@@ -185,8 +185,6 @@ func BootLoaderForm(bootloader *string) *huh.Form {
 				Title("Select A Bootloader").
 				Options(
 					huh.NewOption("Grub", "grub"),
-					huh.NewOption("SystemD-boot", "systemd-boot"),
-					huh.NewOption("Limine", "limine"),
 				).
 				Value(bootloader),
 		),
@@ -199,7 +197,7 @@ func SelectDEForm(de *[]string) *huh.Form {
 			huh.NewMultiSelect[string]().
 				Options(
 					huh.NewOption("KDE plasma", "plasma").Selected(true),
-					huh.NewOption("XFCE", "xfce"),
+					huh.NewOption("XFCE", "xfce4 xfce4-goodies mugshot"),
 					huh.NewOption("GNOME", "gnome"),
 				).
 				Title("Select Desktop Environments").
