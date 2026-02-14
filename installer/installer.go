@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/huh/spinner"
@@ -59,7 +60,20 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		os.Exit(1)
 	}
 	action = func() {
-		err := Install(bootloader, de)
+		err := InstallBase(bootloader)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
+
+		cmd.Stderr = os.Stderr
+		err = cmd.Run()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		err = InstallFullDE(de)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -69,15 +83,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		fmt.Println("Failed:", err)
 		os.Exit(1)
 	}
-	cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
 
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 	//after chroot
 	action = func() {
 		err := AddDarkArchRepos()
@@ -337,7 +343,6 @@ func SetLocalisation(locale string) {
 
 	cmd := exec.Command("arch-chroot", "/mnt", "locale-gen")
 
-	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err = cmd.Run()
@@ -373,7 +378,42 @@ func SetHostname(hostname string) {
 	}
 }
 
-func Install(bootloader string, de []string) error {
+func InstallFullDE(de []string) error {
+	if slices.Contains(de, "xfce4") {
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "xfce4", "xfce4-goodies", "mugshot", "gvfs")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	if slices.Contains(de, "plasma") {
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "plasma", "konsole")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	if slices.Contains(de, "gnome") {
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gnome", "gnome-terminal", "gnome-browser-connector")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func InstallBase(bootloader string) error {
 	packages := []string{
 		"base",
 		"linux",
@@ -388,11 +428,6 @@ func Install(bootloader string, de []string) error {
 		"firefox",
 		bootloader,
 	}
-
-	if len(de) > 0 {
-		packages = append(packages, de...)
-	}
-
 	args := append([]string{"-K", "/mnt"}, packages...)
 
 	cmd := exec.Command("pacstrap", args...)
