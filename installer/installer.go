@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -281,7 +283,40 @@ func SetupBootloader(bootloader string, disk *string) error {
 				return err
 			}
 		}
+	case "limine":
+		if EFIPartition == "" {
 
+		} else {
+			cmd := exec.Command("arch-chroot", "/mnt", "mkdir", "-p", EFIPartition+"/EFI/arch-limine")
+
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				return err
+			}
+
+			cmd = exec.Command("arch-chroot", "/mnt", "cp", "/usr/share/limine/BOOTX64.EFI", EFIPartition+"/EFI/arch/limine/")
+
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
+			// extract the part number
+			base := filepath.Base(EFIPartition)
+			re := regexp.MustCompile(`\d+$`)
+			EFInum := re.FindString(base)
+			cmd = exec.Command("arch-chroot", "/mnt", "efibootmgr", "--create", "--disk", "/dev/"+*disk, "--part", EFInum, "--label", "Dark Arch Linux Limine Boot Loader", "--loader", `\EFI\arch-limine\BOOTX64.EFI`, "--unicode")
+
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

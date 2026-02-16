@@ -186,6 +186,7 @@ func BootLoaderForm(bootloader *string) *huh.Form {
 				Title("Select A Bootloader").
 				Options(
 					huh.NewOption("Grub", "grub"),
+					huh.NewOption("Limine", "limine"),
 				).
 				Value(bootloader),
 		),
