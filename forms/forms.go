@@ -28,6 +28,7 @@ func MainForm(opt *string, version string) *huh.Form {
 					huh.NewOption("Disk partitioning", "diskpart"),
 					huh.NewOption("Select bootloader <"+bootloader+">", "bootloader"),
 					huh.NewOption("Select Desktop Environment", "de"),
+					huh.NewOption("Select a session manager <"+session_manager+">", "session_mgr"),
 					huh.NewOption("Install Dark Arch", "install"),
 					huh.NewOption("Cancel & exit", "cancel"),
 				).
@@ -202,6 +203,21 @@ func SelectDEForm(de *[]string) *huh.Form {
 				).
 				Title("Select Desktop Environments").
 				Value(de),
+		),
+	).WithTheme(theme)
+}
+
+func SelectSessionMGR(session_manager *string) *huh.Form {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("Select A Session Manager").
+				Options(
+					huh.NewOption("Lightdm", "lightdm"),
+					huh.NewOption("Sddm", "sddm"),
+					huh.NewOption("Gdm", "gdm"),
+				).
+				Value(session_manager),
 		),
 	).WithTheme(theme)
 }

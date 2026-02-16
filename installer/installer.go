@@ -16,7 +16,7 @@ var RootPartition string = ""
 var EFIPartition string = ""
 var SwapPartition string = ""
 
-func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, accounts []types.Account) {
+func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, session_manager string, accounts []types.Account) {
 	partitions := fs.GetPartitionOfDisk(*disk)
 	for _, partition := range partitions {
 		Parttype, err := fs.GetPartitionType(partition)
@@ -78,6 +78,11 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 			fmt.Println(err)
 			return
 		}
+		err = InstallSessionManager(session_manager)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
 	}
 	if err := spinner.New().Title("Installing DarkArch...").Action(action).Run(); err != nil {
 		fmt.Println("Failed:", err)
@@ -118,7 +123,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		os.Exit(1)
 	}
 	action = func() {
-		err := SetupBootloader(bootloader)
+		err := SetupBootloader(bootloader, disk)
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -141,7 +146,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		os.Exit(1)
 	}
 	action = func() {
-		err := EnableServices()
+		err := EnableServices(session_manager)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -177,16 +182,16 @@ func AddDarkArchRepos() error {
 
 }
 
-func EnableServices() error {
+func EnableServices(session_manager string) error {
 	cmd := exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "NetworkManager")
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "lightdm")
+	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", session_manager)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	return nil
 }
@@ -238,23 +243,43 @@ func InstallBlackArchRepos() error {
 	return nil
 }
 
-func SetupBootloader(bootloader string) error {
-	if bootloader == "grub" {
-		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+func SetupBootloader(bootloader string, disk *string) error {
+	switch bootloader {
+	case "grub":
+		if EFIPartition == "" {
+			cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=i386-pc", *disk)
 
-		cmd.Stderr = os.Stderr
+			cmd.Stderr = os.Stderr
 
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-		cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+			err := cmd.Run()
+			if err != nil {
+				return err
+			}
+			cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 
-		cmd.Stderr = os.Stderr
+			cmd.Stderr = os.Stderr
 
-		err = cmd.Run()
-		if err != nil {
-			return err
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
+		} else {
+			cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				return err
+			}
+			cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -336,7 +361,7 @@ func SetLocalisation(locale string) {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString(locale); err != nil {
+	if _, err := f.WriteString(locale + "\n"); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
@@ -413,14 +438,45 @@ func InstallFullDE(de []string) error {
 	return nil
 }
 
+func InstallSessionManager(session_manager string) error {
+	switch session_manager {
+	case "lightdm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "lightdm", "lightdm-gtk-greeter")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	case "sddm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "sddm")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	case "gdm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gdm")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func InstallBase(bootloader string) error {
 	packages := []string{
 		"base",
 		"linux",
 		"linux-firmware",
 		"efibootmgr",
-		"lightdm",
-		"lightdm-gtk-greeter",
 		"sudo",
 		"vim",
 		"networkmanager",
