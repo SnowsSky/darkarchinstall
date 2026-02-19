@@ -450,7 +450,7 @@ func InstallFullDE(de []string) error {
 		}
 	}
 	if slices.Contains(de, "plasma") {
-		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "plasma", "konsole")
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "plasma", "konsole", "packagekit")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -460,7 +460,7 @@ func InstallFullDE(de []string) error {
 		}
 	}
 	if slices.Contains(de, "gnome") {
-		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gnome", "gnome-terminal", "gnome-browser-connector")
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gnome", "gnome-terminal", "gnome-browser-connector", "packagekit", "gnome-tweaks")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
