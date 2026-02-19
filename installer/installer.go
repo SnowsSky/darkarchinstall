@@ -46,7 +46,7 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 	// format disk
 	err := fs.FormatDisk(RootPartition, EFIPartition, SwapPartition)
 	if err != nil {
-		fmt.Println("Failed", err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 
@@ -54,42 +54,42 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 	fmt.Println(Blue + "==>" + Reset + "Mouting Partitions...")
 	err = fs.MountPartitions(RootPartition, EFIPartition, SwapPartition)
 	if err != nil {
-		fmt.Println("Failed", err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 
 	fmt.Println(Blue + "==>" + Reset + "Installing Base System...")
 	err = InstallBase(bootloader)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		return
 	}
 
 	cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
 
+	fmt.Println(Blue + "==>" + Reset + " Installing Full Desktop Environment...")
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 	err = InstallFullDE(de)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		return
 	}
 	err = InstallSessionManager(session_manager)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		return
 	}
-	fmt.Println(Blue + "==>" + Reset + "Installing Full Desktop Environment...")
 
 	//after chroot
-	fmt.Println(Blue + "==>" + Reset + "System Configuration...")
+	fmt.Println(Blue + "==>" + Reset + " System Configuration...")
 	err = AddDarkArchRepos()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 	EditOSRelease()
@@ -104,32 +104,32 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 	cmd.Stderr = os.Stderr
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 	err = SetupAccounts(accounts)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 
-	fmt.Println(Blue + "==>" + Reset + "Installing Bootloader...")
+	fmt.Println(Blue + "==>" + Reset + " Installing Bootloader...")
 	err = SetupBootloader(bootloader, disk)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		return
 	}
-	fmt.Println(Blue + "==>" + Reset + "Installing Extra Feature...")
+	fmt.Println(Blue + "==>" + Reset + " Installing Extra Feature...")
 	err = InstallBlackArchRepos()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 	InstallExtraPackages()
-	fmt.Println(Blue + "==>" + Reset + "Enabling Services...")
+	fmt.Println(Blue + "==>" + Reset + " Enabling Services...")
 	err = EnableServices(session_manager)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 
@@ -450,7 +450,8 @@ func InstallSessionManager(session_manager string) error {
 func InstallBase(bootloader string) error {
 	packages := []string{
 		"base",
-		"linux",
+		"linux-hardened",
+		"linux-hardened-headers",
 		"linux-firmware",
 		"efibootmgr",
 		"sudo",
