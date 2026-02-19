@@ -8,15 +8,24 @@ import (
 	"os/exec"
 	"slices"
 	"strings"
-
-	"github.com/charmbracelet/huh/spinner"
 )
 
 var RootPartition string = ""
 var EFIPartition string = ""
 var SwapPartition string = ""
 
-func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, accounts []types.Account) {
+// colors
+var Reset = "\033[0m"
+var Red = "\033[31m"
+var Green = "\033[32m"
+var Yellow = "\033[33m"
+var Blue = "\033[34m"
+var Magenta = "\033[35m"
+var Cyan = "\033[36m"
+var Gray = "\033[37m"
+var White = "\033[97m"
+
+func Setup(disk *string, bootloader string, de []string, timezone *string, locale string, keymap string, hostname string, rootpasswd string, session_manager string, accounts []types.Account) {
 	partitions := fs.GetPartitionOfDisk(*disk)
 	for _, partition := range partitions {
 		Parttype, err := fs.GetPartitionType(partition)
@@ -33,122 +42,94 @@ func Setup(disk *string, bootloader string, de []string, timezone *string, local
 		}
 
 	}
-	action := func() {
-		// format disk
-		err := fs.FormatDisk(RootPartition, EFIPartition, SwapPartition)
-		if err != nil {
-			fmt.Println("Failed", err)
-			os.Exit(1)
-		}
-	}
-	if err := spinner.New().Title("Formating Partitions...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
+	fmt.Println(Blue + "==>" + Reset + " Formating Partitions...")
+	// format disk
+	err := fs.FormatDisk(RootPartition, EFIPartition, SwapPartition)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
+
 	// mount partitions
-	action = func() {
-		// format disk
-		err := fs.MountPartitions(RootPartition, EFIPartition, SwapPartition)
-		if err != nil {
-			fmt.Println("Failed", err)
-			os.Exit(1)
-		}
-	}
-
-	if err := spinner.New().Title("Mouting Partitions...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
+	fmt.Println(Blue + "==>" + Reset + "Mouting Partitions...")
+	err = fs.MountPartitions(RootPartition, EFIPartition, SwapPartition)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
-	action = func() {
-		err := InstallBase(bootloader)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
 
-		cmd.Stderr = os.Stderr
-		err = cmd.Run()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		err = InstallFullDE(de)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
+	fmt.Println(Blue + "==>" + Reset + "Installing Base System...")
+	err = InstallBase(bootloader)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		return
 	}
-	if err := spinner.New().Title("Installing DarkArch...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
+
+	cmd := exec.Command("genfstab", "-U", "/mnt", ">>", "/mnt/etc/fstab")
+
+	fmt.Println(Blue + "==>" + Reset + " Installing Full Desktop Environment...")
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
+	}
+	err = InstallFullDE(de)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		return
+	}
+	err = InstallSessionManager(session_manager)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		return
 	}
 
 	//after chroot
-	action = func() {
-		err := AddDarkArchRepos()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		EditOSRelease()
-		SetTime(timezone)
-		SetLocalisation(locale)
-		SetKeymap(keymap)
-		SetHostname(hostname)
-		// set root password
-		cmd := exec.Command("arch-chroot", "/mnt", "chpasswd")
-		cmd.Stdin = strings.NewReader("root:" + rootpasswd + "\n")
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+	fmt.Println(Blue + "==>" + Reset + " System Configuration...")
+	err = AddDarkArchRepos()
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		os.Exit(1)
+	}
+	EditOSRelease()
+	SetTime(timezone)
+	SetLocalisation(locale)
+	SetKeymap(keymap)
+	SetHostname(hostname)
+	// set root password
+	cmd = exec.Command("arch-chroot", "/mnt", "chpasswd")
+	cmd.Stdin = strings.NewReader("root:" + rootpasswd + "\n")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		os.Exit(1)
+	}
+	err = SetupAccounts(accounts)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		os.Exit(1)
+	}
 
-		err = cmd.Run()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		err = SetupAccounts(accounts)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+	fmt.Println(Blue + "==>" + Reset + " Installing Bootloader...")
+	err = SetupBootloader(bootloader, disk)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
+		return
 	}
-	if err := spinner.New().Title("System Configuration...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
+	fmt.Println(Blue + "==>" + Reset + " Installing Extra Feature...")
+	err = InstallBlackArchRepos()
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
-	action = func() {
-		err := SetupBootloader(bootloader)
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-	}
-	if err := spinner.New().Title("Installing bootloader...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
-		os.Exit(1)
-	}
-	action = func() {
-		err := InstallBlackArchRepos()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		InstallExtraPackages()
-	}
-	if err := spinner.New().Title("Installing extras features...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
-		os.Exit(1)
-	}
-	action = func() {
-		err := EnableServices()
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-	}
-	if err := spinner.New().Title("Enabling services...").Action(action).Run(); err != nil {
-		fmt.Println("Failed:", err)
+	InstallExtraPackages()
+	fmt.Println(Blue + "==>" + Reset + " Enabling Services...")
+	err = EnableServices(session_manager)
+	if err != nil {
+		fmt.Println(Red+"==> ERROR"+Reset, err)
 		os.Exit(1)
 	}
 
@@ -177,16 +158,16 @@ func AddDarkArchRepos() error {
 
 }
 
-func EnableServices() error {
+func EnableServices(session_manager string) error {
 	cmd := exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "NetworkManager")
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
-	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", "lightdm")
+	cmd = exec.Command("arch-chroot", "/mnt", "systemctl", "enable", session_manager)
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	return nil
 }
@@ -238,23 +219,43 @@ func InstallBlackArchRepos() error {
 	return nil
 }
 
-func SetupBootloader(bootloader string) error {
-	if bootloader == "grub" {
-		cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+func SetupBootloader(bootloader string, disk *string) error {
+	switch bootloader {
+	case "grub":
+		if EFIPartition == "" {
+			cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=i386-pc", *disk)
 
-		cmd.Stderr = os.Stderr
+			cmd.Stderr = os.Stderr
 
-		err := cmd.Run()
-		if err != nil {
-			return err
-		}
-		cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+			err := cmd.Run()
+			if err != nil {
+				return err
+			}
+			cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
 
-		cmd.Stderr = os.Stderr
+			cmd.Stderr = os.Stderr
 
-		err = cmd.Run()
-		if err != nil {
-			return err
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
+		} else {
+			cmd := exec.Command("arch-chroot", "/mnt", "grub-install", "--target=x86_64-efi", "--efi-directory=/boot", "--bootloader-id=GRUB")
+
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				return err
+			}
+			cmd = exec.Command("arch-chroot", "/mnt", "grub-mkconfig", "-o", "/boot/grub/grub.cfg")
+
+			cmd.Stderr = os.Stderr
+
+			err = cmd.Run()
+			if err != nil {
+				return err
+			}
 		}
 
 	}
@@ -336,7 +337,7 @@ func SetLocalisation(locale string) {
 	}
 	defer f.Close()
 
-	if _, err := f.WriteString(locale); err != nil {
+	if _, err := f.WriteString(locale + "\n"); err != nil {
 		fmt.Println("Error writing to file:", err)
 		return
 	}
@@ -390,7 +391,7 @@ func InstallFullDE(de []string) error {
 		}
 	}
 	if slices.Contains(de, "plasma") {
-		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "plasma", "konsole")
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "plasma", "konsole", "packagekit")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -400,7 +401,7 @@ func InstallFullDE(de []string) error {
 		}
 	}
 	if slices.Contains(de, "gnome") {
-		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gnome", "gnome-terminal", "gnome-browser-connector")
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gnome", "gnome-terminal", "gnome-browser-connector", "packagekit", "gnome-tweaks")
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
 
@@ -413,14 +414,46 @@ func InstallFullDE(de []string) error {
 	return nil
 }
 
+func InstallSessionManager(session_manager string) error {
+	switch session_manager {
+	case "lightdm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "lightdm", "lightdm-gtk-greeter")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	case "sddm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "sddm")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	case "gdm":
+		cmd := exec.Command("arch-chroot", "/mnt", "pacman", "-S", "--noconfirm", "gdm")
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		err := cmd.Run()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func InstallBase(bootloader string) error {
 	packages := []string{
 		"base",
-		"linux",
+		"linux-hardened",
+		"linux-hardened-headers",
 		"linux-firmware",
 		"efibootmgr",
-		"lightdm",
-		"lightdm-gtk-greeter",
 		"sudo",
 		"vim",
 		"networkmanager",

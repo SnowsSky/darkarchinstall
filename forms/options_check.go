@@ -26,6 +26,7 @@ var (
 	timezone        string
 	bootloader      string   = "grub"
 	de              []string = []string{"plasma"}
+	session_manager string   = "lightdm"
 )
 
 func Options_check(opt string, version string) {
@@ -82,11 +83,13 @@ func Options_check(opt string, version string) {
 		BootLoaderForm(&bootloader).Run()
 	case "de":
 		SelectDEForm(&de).Run()
+	case "session_mgr":
+		SelectSessionMGR(&session_manager).Run()
 	case "install":
 		var text string = "You want to start installation ?"
 		ConfirmForm(&confirm, &text).Run()
 		Ininstaller = false
-		installer.Setup(&selectedDisk, bootloader, de, &timezone, selected_locale, keymap, hostname, rootpasswd, accounts)
+		installer.Setup(&selectedDisk, bootloader, de, &timezone, selected_locale, keymap, hostname, rootpasswd, session_manager, accounts)
 	case "cancel":
 		var text string = "You want to exit installation ?"
 		ConfirmForm(&confirm, &text).Run()
